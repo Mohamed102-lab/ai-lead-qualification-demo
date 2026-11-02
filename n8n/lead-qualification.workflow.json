@@ -1,0 +1,161 @@
+{
+  "name": "Lead qualification (demo)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "new-booking",
+        "options": {}
+      },
+      "id": "b1f2a3c4-0001-4a00-9000-000000000001",
+      "name": "New booking",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 300],
+      "webhookId": "b1f2a3c4-0001-4a00-9000-0000000000aa"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Booking tools sometimes send the same event twice.\n// Remember every booking_id we have processed and skip repeats.\nconst store = $getWorkflowStaticData('global');\nstore.seen = store.seen || {};\nconst out = [];\nfor (const item of $input.all()) {\n  const lead = item.json.body || item.json;\n  const id = lead.booking_id;\n  if (!id || store.seen[id]) continue;\n  store.seen[id] = new Date().toISOString();\n  out.push({ json: lead });\n}\nreturn out;"
+      },
+      "id": "b1f2a3c4-0002-4a00-9000-000000000002",
+      "name": "Skip duplicate bookings",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SCORING_URL }}/score",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.SCORING_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "b1f2a3c4-0003-4a00-9000-000000000003",
+      "name": "Score lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.CRM_UPDATE_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ booking_id: $json.booking_id, decision: $json.decision, reasons: $json.reasons, unknown: $json.unknown }) }}",
+        "options": {}
+      },
+      "id": "b1f2a3c4-0004-4a00-9000-000000000004",
+      "name": "Write result to CRM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 300],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1a2b3c4-0000-4000-8000-000000000001",
+              "leftValue": "={{ $('Score lead').item.json.decision }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b1f2a3c4-0005-4a00-9000-000000000005",
+      "name": "Rejected?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.CANCEL_BOOKING_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ booking_id: $('Score lead').item.json.booking_id, reason: 'Does not meet qualification rules' }) }}",
+        "options": {}
+      },
+      "id": "b1f2a3c4-0006-4a00-9000-000000000006",
+      "name": "Cancel the call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 200],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.TEAM_ALERT_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: 'Lead ' + $('Score lead').item.json.booking_id + ': ' + $('Score lead').item.json.decision + '. ' + $('Score lead').item.json.reasons.join(' ') }) }}",
+        "options": {}
+      },
+      "id": "b1f2a3c4-0007-4a00-9000-000000000007",
+      "name": "Tell the sales team",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 400],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    }
+  ],
+  "connections": {
+    "New booking": {
+      "main": [[{ "node": "Skip duplicate bookings", "type": "main", "index": 0 }]]
+    },
+    "Skip duplicate bookings": {
+      "main": [[{ "node": "Score lead", "type": "main", "index": 0 }]]
+    },
+    "Score lead": {
+      "main": [[{ "node": "Write result to CRM", "type": "main", "index": 0 }]]
+    },
+    "Write result to CRM": {
+      "main": [[{ "node": "Rejected?", "type": "main", "index": 0 }]]
+    },
+    "Rejected?": {
+      "main": [
+        [{ "node": "Cancel the call", "type": "main", "index": 0 }],
+        [{ "node": "Tell the sales team", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

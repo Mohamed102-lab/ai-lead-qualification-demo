@@ -1,0 +1,26 @@
+services:
+  scoring:
+    build: .
+    environment:
+      - SCORING_API_KEY=${SCORING_API_KEY}
+    ports:
+      - "8000:8000"
+
+  n8n:
+    image: n8nio/n8n:latest
+    ports:
+      - "5678:5678"
+    environment:
+      - SCORING_URL=http://scoring:8000
+      - SCORING_API_KEY=${SCORING_API_KEY}
+      - CRM_UPDATE_URL=${CRM_UPDATE_URL}
+      - CANCEL_BOOKING_URL=${CANCEL_BOOKING_URL}
+      - TEAM_ALERT_URL=${TEAM_ALERT_URL}
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - scoring
+
+volumes:
+  n8n_data:

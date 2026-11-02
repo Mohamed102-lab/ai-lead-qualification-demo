@@ -1,0 +1,72 @@
+[
+  {
+    "booking_id": "demo-001",
+    "company": "Example Freight Co",
+    "email": "owner1@example.com",
+    "credit_score": 720,
+    "months_in_business": 36,
+    "monthly_revenue": 55000,
+    "requested_amount": 80000,
+    "expected_decision": "approve"
+  },
+  {
+    "booking_id": "demo-002",
+    "company": "Sample Bakery LLC",
+    "email": "owner2@example.com",
+    "credit_score": 620,
+    "months_in_business": 18,
+    "monthly_revenue": 25000,
+    "requested_amount": 40000,
+    "expected_decision": "fix"
+  },
+  {
+    "booking_id": "demo-003",
+    "company": "Test Roofing Inc",
+    "email": "owner3@example.com",
+    "credit_score": 540,
+    "months_in_business": 48,
+    "monthly_revenue": 60000,
+    "requested_amount": 50000,
+    "expected_decision": "reject"
+  },
+  {
+    "booking_id": "demo-004",
+    "company": "Placeholder Studio",
+    "email": "owner4@example.com",
+    "credit_score": 700,
+    "months_in_business": 3,
+    "monthly_revenue": 20000,
+    "requested_amount": 20000,
+    "expected_decision": "reject"
+  },
+  {
+    "booking_id": "demo-005",
+    "company": "Demo Auto Repair",
+    "email": "owner5@example.com",
+    "credit_score": 690,
+    "months_in_business": 24,
+    "monthly_revenue": null,
+    "requested_amount": 30000,
+    "expected_decision": "needs_info"
+  },
+  {
+    "booking_id": "demo-006",
+    "company": "Fictional Landscaping",
+    "email": "owner6@example.com",
+    "credit_score": 710,
+    "months_in_business": 60,
+    "monthly_revenue": 30000,
+    "requested_amount": 150000,
+    "expected_decision": "reject"
+  },
+  {
+    "booking_id": "demo-007",
+    "company": "Mock Dental Group",
+    "email": "owner7@example.com",
+    "credit_score": 680,
+    "months_in_business": 12,
+    "monthly_revenue": 15000,
+    "requested_amount": 30000,
+    "expected_decision": "approve"
+  }
+]

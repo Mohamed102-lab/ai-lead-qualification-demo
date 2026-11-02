@@ -1,0 +1,7 @@
+{
+  "min_credit_score": 650,
+  "fixable_credit_score": 580,
+  "min_months_in_business": 6,
+  "min_monthly_revenue": 10000,
+  "max_amount_to_monthly_revenue": 3.0
+}
